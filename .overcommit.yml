@@ -45,7 +45,7 @@ CommitMsg:
 
   MessageFormat:
     enabled: true
-    description: 'Check for git conventional commits: https://www.conventionalcommits.org/en/v1.0.0/'
+    description: 'Check for Git Conventional Commits'
     pattern: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([\w\-\.]+\))?(!)?: ([\w ])+([\s\S]*)'
     expected_pattern_message: 'Go to https://www.conventionalcommits.org/en/v1.0.0/'
     sample_message: 'feat(results): print results summary to stdout'
