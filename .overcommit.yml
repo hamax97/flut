@@ -39,19 +39,17 @@ PreCommit:
     problem_on_unmodified_line: ignore
     command: ['bundle', 'exec', 'rubocop']
 
-  CommitMsg:
+CommitMsg:
+  CapitalizedSubject:
+    enabled: false
+
+  MessageFormat:
     enabled: true
+    description: 'Check for git conventional commits: https://www.conventionalcommits.org/en/v1.0.0/'
+    pattern: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([\w\-\.]+\))?(!)?: ([\w ])+([\s\S]*)'
+    expected_pattern_message: 'Go to https://www.conventionalcommits.org/en/v1.0.0/'
+    sample_message: 'feat(results): print results summary to stdout'
 
-    CapitalizedSubject:
-      enabled: false
-
-    MessageFormat:
-      enabled: true
-      description: 'Check for git conventional commits: https://www.conventionalcommits.org/en/v1.0.0/'
-      pattern: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([\w\-\.]+\))?(!)?: ([\w ])+([\s\S]*)'
-      expected_pattern_message: 'Go to https://www.conventionalcommits.org/en/v1.0.0/'
-      sample_message: 'feat(results): print results summary to stdout'
-
-    TextWidth:
-      enabled: true
-      max_subject_width: 50
+  TextWidth:
+    enabled: true
+    max_subject_width: 50
