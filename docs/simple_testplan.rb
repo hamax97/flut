@@ -12,7 +12,8 @@ require 'diluvium'
 Diluvium.config do |config|
   config.vars[:main_url] = "https://some-staging-website.com" # these are shared among threads.
 
-  config.results
+  config
+    .results
     .output_csv("results.csv")
     .summary(:stdout) # this is default.
 

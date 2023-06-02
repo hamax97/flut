@@ -1,4 +1,3 @@
 # TO-DOs
 
-- Add CI/CD. CircleCI?
-- 
+- Add CI/CD. CircleCI? GitHub Actions?
