@@ -47,3 +47,6 @@ Metrics/BlockLength:
     - draw
     - configure
     - group
+
+RSpec/FilePath:
+  SpecSuffixOnly: true

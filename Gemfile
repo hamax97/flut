@@ -2,8 +2,9 @@
 
 source "https://rubygems.org"
 
-group :development, :test do
-  gem "overcommit", "~> 0.60.0"
+group :development do
+  gem "overcommit", "~> 0.60.0", require: false
+  gem "rspec", "~> 3.12", require: false
   gem "rubocop", "~> 1.51", require: false
   gem "rubocop-performance", "~> 1.18"
   gem "rubocop-rspec", "~> 2.22"
