@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 require:
   - rubocop-performance
   - rubocop-rspec
@@ -48,5 +50,20 @@ Metrics/BlockLength:
     - configure
     - group
 
+Style/ExplicitBlockArgument:
+  Enabled: false
+
 RSpec/FilePath:
   SpecSuffixOnly: true
+
+RSpec/DescribedClass:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/NotToNot:
+  Enabled: false

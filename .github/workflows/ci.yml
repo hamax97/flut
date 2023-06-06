@@ -1,0 +1,25 @@
+name: CI checks
+
+on: [push, pull_request]
+
+jobs:
+  ci-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2.2'
+          bundler-cache: true
+
+      - name: Run bundle install
+        run: bundle config set --local only ci && bundle install
+
+      - name: Run Rubocop
+        run: bundle exec rubocop
+
+      - name: Run rspec
+        run: bundle exec rspec
