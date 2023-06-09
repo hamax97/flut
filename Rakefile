@@ -5,9 +5,9 @@ task default: :ci
 task ci: %i[lint specs]
 
 task :lint do
-  sh "rubocop"
+  sh "bundle exec rubocop"
 end
 
 task :specs do
-  sh "rspec"
+  sh "bundle exec rspec"
 end
