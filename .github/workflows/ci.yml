@@ -18,8 +18,5 @@ jobs:
       - name: Run bundle install
         run: bundle config set --local only ci && bundle install
 
-      - name: Run Rubocop
-        run: bundle exec rubocop
-
-      - name: Run rspec
-        run: bundle exec rspec
+      - name: Run rake ci
+        run: rake ci
