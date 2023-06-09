@@ -11,7 +11,8 @@ AllCops:
   NewCops: enable
   SuggestExtensions: false
   Exclude:
-    - 'docs/**/'
+    - docs/**/
+    - vendor/bundle/**/*
 
 Layout/LineLength:
   Max: 100
