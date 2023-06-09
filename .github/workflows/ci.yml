@@ -18,5 +18,8 @@ jobs:
       - name: Run bundle install
         run: bundle config set --local only ci && bundle install
 
+      - name: Debug task
+        run: which rubocop && bundle info rubocop
+
       - name: Run rake ci
         run: rake ci
