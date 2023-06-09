@@ -9,6 +9,7 @@ Style/StringLiterals:
 
 AllCops:
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
     - 'docs/**/'
 

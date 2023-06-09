@@ -8,6 +8,7 @@ group :development do
 end
 
 group :development, :ci do
+  gem "rake", "~> 13.0"
   gem "rspec", "~> 3.12", require: false
   gem "rubocop", "~> 1.51", require: false
   gem "rubocop-performance", "~> 1.18"
