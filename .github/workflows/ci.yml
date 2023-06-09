@@ -2,9 +2,6 @@ name: CI checks
 
 on: [push, pull_request]
 
-env:
-  ACTIONS_STEP_DEBUG: true
-
 jobs:
   ci-checks:
     runs-on: ubuntu-latest
@@ -20,9 +17,6 @@ jobs:
 
       - name: Run bundle install
         run: bundle config set --local only ci && bundle install
-
-      - name: Debug task
-        run: pwd && bundle info rubocop
 
       - name: Run rake ci
         run: rake ci
