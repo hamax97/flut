@@ -12,6 +12,7 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - docs/**/
+    # avoid including rubocop config files from deps, they cause ci errors in GitHubActions.
     - vendor/bundle/**/*
 
 Layout/LineLength:
