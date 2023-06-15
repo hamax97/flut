@@ -27,10 +27,6 @@ RSpec.describe Flut::Timer do
 
   describe ".clocktime" do
     it "uses the Process.clock_gettime method" do
-      # expect(Process)
-      #   .to receive(:clock_gettime)
-      #   .with(Process::CLOCK_MONOTONIC)
-      #   .and_call_original
       allow(Process).to receive(:clock_gettime).and_call_original
 
       timer.clocktime

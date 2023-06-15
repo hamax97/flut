@@ -4,29 +4,30 @@ require_relative "../../lib/tps_centered_executor"
 require_relative "../../lib/timer"
 require "benchmark"
 
-TargetTPS = Struct.new(:tps, :duration_sec)
-
 RSpec.describe Flut::TPSCenteredExecutor do
   describe "#execute" do
     let(:executor) { Flut::TPSCenteredExecutor.new }
 
     it "executes the given block during the given duration" do
       duration_sec = 0.2
-      target_tps = [TargetTPS.new(tps: 1, duration_sec:)]
-      elapsed_time_sec = Benchmark.measure { executor.execute(target_tps, &-> {}) }.total
+      elapsed_time_sec = Benchmark.measure do
+        executor.execute(tps: 1, duration_sec:, &-> {})
+      end.total
 
       expect(elapsed_time_sec).to be_within(0.1).of(duration_sec)
     end
 
-    it "executes the given block the given number of times per second"
+    it "executes the given block the given number of times per second" do
+      expect { |block| executor.execute(tps: 20, duration_sec: 0.2, &block) }
+        .to yield_control
+        .at_least(:once)
+        .at_most(4).times # 20 * 0.2 = 4
+    end
 
     context "when target duration is zero" do
       it "doesn't execute the block" do
-        target_tps = [TargetTPS.new(tps: 1, duration_sec: 0)]
-        expect { |block| executor.execute(target_tps, &block) }.not_to yield_control
+        expect { |block| executor.execute(tps: 1, duration_sec: 0, &block) }.not_to yield_control
       end
-
-      it "skips the target tps immediately"
     end
 
     context "when target tps is zero" do

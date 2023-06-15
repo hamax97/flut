@@ -70,3 +70,6 @@ RSpec/MultipleExpectations:
 
 RSpec/NotToNot:
   Enabled: false
+
+RSpec/VerifiedDoubleReference:
+  EnforcedStyle: constant
