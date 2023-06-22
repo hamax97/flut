@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/timer"
+require_relative "../../../lib/time/timer"
+require_relative "../../../lib/time/stepping_timer"
 require "benchmark"
 
 RSpec.describe Flut::Timer do
   let(:timer) { Flut::Timer }
 
-  def expect_execution_to_last(duration_sec)
-    elapsed_time_sec = Benchmark.measure { yield }.total
+  def expect_execution_to_last(duration_sec, &)
+    elapsed_time_sec = Benchmark.measure(&).total
     expect(elapsed_time_sec).to be_within(0.01).of(duration_sec)
   end
 
@@ -18,11 +19,7 @@ RSpec.describe Flut::Timer do
     end
 
     it "executes the given block" do
-      expect { |block| timer.during(0.01, &block) }.to yield_control
-    end
-
-    it "raises error if no block given" do
-      expect { timer.during(0.01) }.to raise_error(/nothing to execute/i)
+      expect { |block| timer.during(0.001, &block) }.to yield_control
     end
 
     context "when duration is zero" do
@@ -34,6 +31,30 @@ RSpec.describe Flut::Timer do
         duration_sec = 0
         expect_execution_to_last(duration_sec) { timer.during(duration_sec, &-> {}) }
       end
+    end
+
+    it "raises error if no block given" do
+      expect { timer.during(0) }.to raise_error(/nothing to execute/i)
+    end
+  end
+
+  describe ".sleep" do
+    it "uses the system's sleep with the specified time" do
+      allow(Kernel).to receive(:sleep)
+      timer.sleep(0.001)
+      expect(Kernel).to have_received(:sleep).with(0.001)
+    end
+  end
+
+  describe ".measure" do
+    it "returns the elapsed time to execute the given block" do
+      block_execution_time_sec = 0.001
+      elapsed_time_sec = timer.measure { sleep block_execution_time_sec }
+      expect(elapsed_time_sec).to be_within(0.01).of(block_execution_time_sec)
+    end
+
+    it "executes the given block" do
+      expect { |block| timer.measure(&block) }.to yield_control
     end
   end
 

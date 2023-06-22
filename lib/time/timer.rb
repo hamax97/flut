@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "benchmark"
+
 module Flut
   module Timer
     def self.clocktime
@@ -11,6 +13,14 @@ module Flut
 
       start_time = clocktime
       yield while (clocktime - start_time) < duration_sec
+    end
+
+    def self.sleep(time_sec)
+      Kernel.sleep time_sec
+    end
+
+    def self.measure(&)
+      Benchmark.measure(&).total
     end
   end
 end
