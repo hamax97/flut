@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "timer"
+require_relative "../time/timer"
 
 module Flut
   class TPSCenteredExecutor
@@ -8,7 +8,7 @@ module Flut
       @timer = timer
     end
 
-    def execute(tps:, duration_sec:, &)
+    def execute(tps:, &)
       if tps.zero?
         stay_idle duration_sec
       else

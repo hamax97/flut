@@ -7,9 +7,13 @@ module Flut
   class SteppingTimer
     attr_reader :duration_sec, :timer
 
-    def initialize(duration_sec:, timer: Timer)
-      @duration_sec = duration_sec
+    def initialize(timer: Timer)
       @timer = timer
+    end
+
+    def during(duration_sec)
+      @duration_sec = duration_sec
+      self
     end
 
     def each_second(&)
