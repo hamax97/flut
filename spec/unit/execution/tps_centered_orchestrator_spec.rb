@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/execution/tps_centered_orchestrator"
-require_relative "../../lib/execution/tps_centered_executor"
-require_relative "../../lib/time/stepping_timer"
+require_relative "../../../lib/execution/tps_centered_orchestrator"
+require_relative "../../../lib/execution/tps_centered_executor"
+require_relative "../../../lib/time/stepping_timer"
 
 # TODO: move this somewhere else.
 TargetTPS = Struct.new(:tps, :duration_sec)

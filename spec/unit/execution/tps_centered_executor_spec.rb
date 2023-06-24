@@ -1,16 +1,38 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/execution/tps_centered_executor"
+require_relative "../../../lib/execution/tps_centered_executor"
+require_relative "../../../lib/time/timer"
 
 RSpec.describe Flut::TPSCenteredExecutor do
   describe "#execute" do
+    let(:executor) { Flut::TPSCenteredExecutor.new }
+    let(:timer) { Flut::Timer }
+
     it "counts the current number of tps"
-    it "returns immediately after starting the execution of the given block"
-    context "when the current tps is zero"
+
+    context "when the current tps is zero" do
+      it "starts executing the given block the given # of tps times" do
+        tps = rand(2..5)
+        expect { |testplan| executor.execute(tps:, &testplan) }.to yield_control.exactly(tps).times
+      end
+    end
+
     context "when the current tps is between 1 and the desired tps"
     context "when the current tps is the desired tps"
+    context "when the current tps is higher than the desired tps"
 
-    let(:executor) { Flut::TPSCenteredExecutor.new }
+    it "returns immediately after starting the executions of the given block" do
+      skip "learn first how Async works and then design how to wrap all the app in there"
+      tps = 2
+      testplan = -> { sleep 0.5 }
+      require "async"
+      Async do |task|
+        elapsed_time_sec = timer.measure do
+          executor.execute(task, tps:, &testplan)
+        end
+        expect(elapsed_time_sec).to be < 0.01
+      end
+    end
 
     # TODO: Find a way to mock duration. expect for timer.during instead of using benchmark.
     # TODO: Find a way to mock executions per second so that you don't have to wait.

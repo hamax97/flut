@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../time/timer"
+require "async"
 
 module Flut
   class TPSCenteredExecutor
@@ -9,11 +10,15 @@ module Flut
     end
 
     def execute(tps:, &)
-      if tps.zero?
-        stay_idle duration_sec
-      else
-        execute_per_second(tps:, duration_sec:, &)
+      tps.times do
+        # Async { yield }
+        yield
       end
+      # if tps.zero?
+      #   stay_idle duration_sec
+      # else
+      #   execute_per_second(tps:, duration_sec:, &)
+      # end
     end
 
     private

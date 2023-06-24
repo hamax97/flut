@@ -14,3 +14,5 @@ group :development, :ci do
   gem "rubocop-performance", "~> 1.18"
   gem "rubocop-rspec", "~> 2.22"
 end
+
+gem "async", "~> 2.6"
