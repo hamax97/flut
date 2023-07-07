@@ -1,40 +1,42 @@
 # frozen_string_literal: true
 
-require_relative "../time/timer"
 require "async"
 
 module Flut
   class TPSCenteredExecutor
-    def initialize(timer: Timer)
-      @timer = timer
+    attr_reader :current_tps
+
+    def initialize
+      @current_tps = 0
+      @executions = []
     end
 
-    def execute(tps:, &)
-      tps.times do
-        # Async { yield }
-        yield
+    def execute(tps, &)
+      missing_tps(tps).times do
+        async_execute(&)
       end
-      # if tps.zero?
-      #   stay_idle duration_sec
-      # else
-      #   execute_per_second(tps:, duration_sec:, &)
-      # end
+
+      wait_executions
     end
 
     private
 
-    attr_reader :timer
+    attr_reader :executions
 
-    def stay_idle(duration_sec)
-      sleep duration_sec
+    def async_execute(&)
+      executions << Async do
+        yield
+        @current_tps += 1
+      end
     end
 
-    def execute_per_second(tps:, duration_sec:)
-      sleep_time_sec = 1.to_f / tps
-      timer.during(duration_sec) do
-        yield
-        sleep sleep_time_sec
-      end
+    def wait_executions
+      # TODO: Create a test to make sure these tasks are deleted.
+      executions.each(&:wait)
+    end
+
+    def missing_tps(tps)
+      [tps - current_tps, 0].max
     end
   end
 end

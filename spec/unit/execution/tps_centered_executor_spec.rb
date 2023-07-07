@@ -1,83 +1,104 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/tps_centered_executor"
-require_relative "../../../lib/time/timer"
+require "async/rspec"
 
 RSpec.describe Flut::TPSCenteredExecutor do
+  let(:executor) { Flut::TPSCenteredExecutor.new }
+
+  it "counts the current number of tps" do
+    current_tps = executor.current_tps
+    expect(current_tps).to eq 0
+  end
+
   describe "#execute" do
-    let(:executor) { Flut::TPSCenteredExecutor.new }
-    let(:timer) { Flut::Timer }
+    it "sets the current tps the desired tps" do
+      tps = rand(2..5)
+      executor.execute(tps, &-> {})
+      expect(executor.current_tps).to eq tps
+    end
 
-    it "counts the current number of tps"
-
-    context "when the current tps is zero" do
-      it "starts executing the given block the given # of tps times" do
+    context "when current_tps is zero" do
+      it "starts execution the given # of times per second" do
         tps = rand(2..5)
-        expect { |testplan| executor.execute(tps:, &testplan) }.to yield_control.exactly(tps).times
+        expect { |testplan| executor.execute(tps, &testplan) }.to yield_control.exactly(tps).times
       end
     end
 
-    context "when the current tps is between 1 and the desired tps"
-    context "when the current tps is the desired tps"
-    context "when the current tps is higher than the desired tps"
+    context "when current_tps is > 1" do
+      it "starts executing (target_tps - current_tps) # of times" do
+        current_tps = rand(2..5)
+        executor.execute(current_tps, &-> {})
+        tps = rand(2..5)
+        expected_yields = [tps - current_tps, 0].max
 
-    it "returns immediately after starting the executions of the given block" do
-      skip "learn first how Async works and then design how to wrap all the app in there"
-      tps = 2
-      testplan = -> { sleep 0.5 }
-      require "async"
-      Async do |task|
-        elapsed_time_sec = timer.measure do
-          executor.execute(task, tps:, &testplan)
-        end
-        expect(elapsed_time_sec).to be < 0.01
+        expect { |testplan| executor.execute(tps, &testplan) }
+          .to yield_control.exactly(expected_yields).times
       end
     end
 
-    # TODO: Find a way to mock duration. expect for timer.during instead of using benchmark.
-    # TODO: Find a way to mock executions per second so that you don't have to wait.
-    #       Maybe mock sleep (that would be awful) ??
-
-    it "loops over the given block during the given duration" do
-      skip "not ready yet"
-
-      duration_sec = 1
-      executor.execute(tps: 1, duration_sec:, &-> {})
-      expect(timer).to have_received(:during).with duration_sec
-    end
-
-    it "executes the given block the given number of times per second" do
-      skip "not ready yet"
-      tps = 20
-      duration_sec = 0.1
-      expect { |block| executor.execute(tps:, duration_sec:, &block) }
-        .to yield_control
-        .at_least(:once)
-        .at_most(tps * duration_sec).times
-    end
-
-    context "when the given block lasts for random amounts of time" do
-      it "executes the block the given number of times per second"
-    end
-
-    context "when target tps is zero" do
-      it "stays idle during the specified duration" do
-        skip "not ready yet"
-        duration_sec = 0.05
-        expect_execution_to_take(duration_sec) do
-          executor.execute(tps: 0, duration_sec:, &-> {})
-        end
-      end
-
+    context "when the target tps is zero" do
       it "doesn't execute the block" do
-        skip "not ready yet"
-        expect { |block| executor.execute(tps: 0, duration_sec: 0.05, &block) }.not_to yield_control
+        tps = 0
+        expect { |testplan| executor.execute(tps, &testplan) }.to_not yield_control
       end
     end
 
+    context "when inside an async context" do
+      include_context Async::RSpec::Reactor
+
+      it "starts a new async task per each execution" do
+        reactor.async do
+          parent_context = Async::Task.current
+          tps = 2
+          testplan = proc do
+            new_context = Async::Task.current
+            expect(new_context).to_not be parent_context
+          end
+
+          executor.execute(tps, &testplan)
+        end
+      end
+
+      it "waits for all executions to finish" do
+        tps = 2
+        executions_finished = Array.new(tps, false)
+        exec_idx = 0
+        testplan = proc do
+          sleep 0.01
+          executions_finished[exec_idx] = true
+          exec_idx += 1
+        end
+
+        executor.execute(tps, &testplan)
+        expect(executions_finished).to all be true
+      end
+    end
+
+    context "when an execution finishes" do
+      it "will never be waited for again" do
+        skip "don't know how to test yet"
+        # BUG HERE! executions not deleted yet (use a queue?)
+        # Next .wait will be fast, but the executions list has to be emptied.
+        # How to test this?
+
+        tps = 1
+        testplan = -> { sleep 0.01 }
+        executor.execute(tps, &testplan)
+
+        # then expect next execution to be quick (but this won't work)
+        executor.execute(tps, &-> {})
+      end
+    end
+
+    # TODO: add this feature in a future release.
     context "when target tps is between 0 and 1" do
       it "doesn't execute the block more than once per second"
       it "executes the given block once per the implied number of seconds"
     end
+  end
+
+  describe "#reset_tps_counter" do
+    it "sets current_tps to zero"
   end
 end

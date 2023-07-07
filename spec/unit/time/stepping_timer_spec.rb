@@ -87,5 +87,9 @@ RSpec.describe Flut::SteppingTimer do
 
       it "logs a debug message indicating the delay"
     end
+
+    context "when the given block takes exactly a second to execute" do
+      it "doesn't sleep"
+    end
   end
 end
