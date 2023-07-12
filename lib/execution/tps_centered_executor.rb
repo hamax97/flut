@@ -1,38 +1,31 @@
 # frozen_string_literal: true
 
-require "async"
-
 module Flut
   class TPSCenteredExecutor
     attr_reader :current_tps
 
-    def initialize
+    def initialize(async_executor:)
       @current_tps = 0
-      @executions = []
+      @async_executor = async_executor
     end
 
     def execute(tps, &)
-      missing_tps(tps).times do
-        async_execute(&)
+      async_executor.async_context do
+        missing_tps(tps).times do
+          async_execute(&)
+        end
       end
-
-      wait_executions
     end
 
     private
 
-    attr_reader :executions
+    attr_reader :async_executor
 
     def async_execute(&)
-      executions << Async do
+      async_executor.execute do
         yield
         @current_tps += 1
       end
-    end
-
-    def wait_executions
-      # TODO: Create a test to make sure these tasks are deleted.
-      executions.each(&:wait)
     end
 
     def missing_tps(tps)

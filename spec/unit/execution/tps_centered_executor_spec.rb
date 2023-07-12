@@ -1,18 +1,51 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/tps_centered_executor"
+require_relative "../../../lib/execution/async_executor"
 require "async/rspec"
 
 RSpec.describe Flut::TPSCenteredExecutor do
-  let(:executor) { Flut::TPSCenteredExecutor.new }
+  let(:async_executor) { instance_spy(Flut::AsyncExecutor) }
+  let(:executor) { Flut::TPSCenteredExecutor.new async_executor: }
 
   it "counts the current number of tps" do
+    expect(executor).to respond_to :current_tps
+  end
+
+  it "initializes current_tps to zero" do
     current_tps = executor.current_tps
     expect(current_tps).to eq 0
   end
 
   describe "#execute" do
-    it "sets the current tps the desired tps" do
+    # What is a Reactor?
+    # https://socketry.github.io/async/guides/getting-started/index.html
+    include_context Async::RSpec::Reactor
+
+    before do
+      allow(async_executor).to receive(:execute).and_yield
+      allow(async_executor).to receive(:async_context) do |&block|
+        reactor.async { block.call }
+      end
+    end
+
+    it "starts each execution inside an asynchronous context" do
+      tps = 2
+      testplan = proc do
+        expect(Flut::AsyncExecutor.inside_async_context?).to be true
+      end
+      executor.execute(tps, &testplan)
+
+      expect(async_executor).to have_received(:async_context).once
+    end
+
+    it "starts each execution asynchronously" do
+      tps = 2
+      executor.execute(tps, &-> {})
+      expect(async_executor).to have_received(:execute).twice
+    end
+
+    it "sets the current tps to the desired tps" do
       tps = rand(2..5)
       executor.execute(tps, &-> {})
       expect(executor.current_tps).to eq tps
@@ -41,53 +74,6 @@ RSpec.describe Flut::TPSCenteredExecutor do
       it "doesn't execute the block" do
         tps = 0
         expect { |testplan| executor.execute(tps, &testplan) }.to_not yield_control
-      end
-    end
-
-    context "when inside an async context" do
-      include_context Async::RSpec::Reactor
-
-      it "starts a new async task per each execution" do
-        reactor.async do
-          parent_context = Async::Task.current
-          tps = 2
-          testplan = proc do
-            new_context = Async::Task.current
-            expect(new_context).to_not be parent_context
-          end
-
-          executor.execute(tps, &testplan)
-        end
-      end
-
-      it "waits for all executions to finish" do
-        tps = 2
-        executions_finished = Array.new(tps, false)
-        exec_idx = 0
-        testplan = proc do
-          sleep 0.01
-          executions_finished[exec_idx] = true
-          exec_idx += 1
-        end
-
-        executor.execute(tps, &testplan)
-        expect(executions_finished).to all be true
-      end
-    end
-
-    context "when an execution finishes" do
-      it "will never be waited for again" do
-        skip "don't know how to test yet"
-        # BUG HERE! executions not deleted yet (use a queue?)
-        # Next .wait will be fast, but the executions list has to be emptied.
-        # How to test this?
-
-        tps = 1
-        testplan = -> { sleep 0.01 }
-        executor.execute(tps, &testplan)
-
-        # then expect next execution to be quick (but this won't work)
-        executor.execute(tps, &-> {})
       end
     end
 
