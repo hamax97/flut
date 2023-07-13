@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require_relative "async_executor"
+
 module Flut
   class TPSCenteredExecutor
     attr_reader :current_tps
 
-    def initialize(async_executor:)
+    def initialize(async_executor: AsyncExecutor.new)
       @current_tps = 0
       @async_executor = async_executor
     end
@@ -15,6 +17,10 @@ module Flut
           async_execute(&)
         end
       end
+    end
+
+    def reset_tps_counter
+      @current_tps = 0
     end
 
     private

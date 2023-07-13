@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/tps_centered_executor"
-require_relative "../../../lib/execution/async_executor"
-require "async/rspec"
+require_relative "../../support/async_executor"
 
 RSpec.describe Flut::TPSCenteredExecutor do
-  let(:async_executor) { instance_spy(Flut::AsyncExecutor) }
+  include_context Flut::RSpec::AsyncExecutor
+
   let(:executor) { Flut::TPSCenteredExecutor.new async_executor: }
 
   it "counts the current number of tps" do
@@ -18,17 +18,6 @@ RSpec.describe Flut::TPSCenteredExecutor do
   end
 
   describe "#execute" do
-    # What is a Reactor?
-    # https://socketry.github.io/async/guides/getting-started/index.html
-    include_context Async::RSpec::Reactor
-
-    before do
-      allow(async_executor).to receive(:execute).and_yield
-      allow(async_executor).to receive(:async_context) do |&block|
-        reactor.async { block.call }
-      end
-    end
-
     it "starts each execution inside an asynchronous context" do
       tps = 2
       testplan = proc do
@@ -85,6 +74,13 @@ RSpec.describe Flut::TPSCenteredExecutor do
   end
 
   describe "#reset_tps_counter" do
-    it "sets current_tps to zero"
+    it "sets current_tps to zero" do
+      tps = rand(2..5)
+      testplan = -> {}
+      executor.execute(tps, &testplan)
+
+      executor.reset_tps_counter
+      expect(executor.current_tps).to eq 0
+    end
   end
 end

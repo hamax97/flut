@@ -2,32 +2,38 @@
 
 require_relative "../../../lib/execution/tps_centered_orchestrator"
 require_relative "../../../lib/execution/tps_centered_executor"
-require_relative "../../../lib/execution/async_executor"
 require_relative "../../../lib/time/stepping_timer"
+require_relative "../../support/async_executor"
 
 # TODO: move this somewhere else.
 TargetTPS = Struct.new(:tps, :duration_sec)
 
 RSpec.describe Flut::TPSCenteredOrchestrator do
+  include_context Flut::RSpec::AsyncExecutor
+
   let(:tps_centered_executor) { instance_spy(Flut::TPSCenteredExecutor) }
   let(:stepping_timer) { instance_spy(Flut::SteppingTimer) }
-  let(:async_executor) { instance_spy(Flut::AsyncExecutor) }
   let(:tps_centered_orchestrator) do
     Flut::TPSCenteredOrchestrator.new(tps_centered_executor:, stepping_timer:, async_executor:)
   end
 
-  describe "#execute" do
-    context "with each of the target tps given" do
-      let(:target_tps_list) do
-        [
-          TargetTPS.new(tps: 1, duration_sec: 1),
-          TargetTPS.new(tps: 2, duration_sec: 3),
-          TargetTPS.new(tps: 4, duration_sec: 2)
-        ]
-      end
+  before do
+    allow(tps_centered_executor).to receive(:execute).and_yield
+    allow(stepping_timer).to receive(:during).and_return stepping_timer
+    allow(stepping_timer).to receive(:each_second).and_yield
+  end
 
+  describe "#execute" do
+    let(:target_tps_list) do
+      [
+        TargetTPS.new(tps: 1, duration_sec: 1),
+        TargetTPS.new(tps: 2, duration_sec: 3),
+        TargetTPS.new(tps: 4, duration_sec: 2)
+      ]
+    end
+
+    context "with each of the target tps given" do
       it "loops over the given block once a second for the specified duration" do
-        skip "why is this not working/?"
         testplan = -> {}
         tps_centered_orchestrator.execute(target_tps_list, &testplan)
 
@@ -39,9 +45,6 @@ RSpec.describe Flut::TPSCenteredOrchestrator do
       end
 
       it "executes the given block with the specified target tps" do
-        skip "why is this not working/?"
-        allow(stepping_timer).to receive(:each_second).and_yield
-
         testplan = -> {}
         tps_centered_orchestrator.execute(target_tps_list, &testplan)
 
@@ -49,41 +52,36 @@ RSpec.describe Flut::TPSCenteredOrchestrator do
           expect(tps_centered_executor).to have_received(:execute).with(t.tps)
         end
       end
+    end
 
-      # TODO: finish refactoring these specs, perhaps the last one could be deleted.
-
-      it "executes the given block inside an async context" do
-        skip "not finished yet"
-        allow(stepping_timer).to receive(:each_second).and_yield
-        allow(tps_centered_executor).to receive(:execute).and_yield
-
-        inside_async_context = false
-        testplan = proc do
-          inside_async_context = Flut::AsyncExecutor.inside_async_context?
-        end
+    context "when an execution finishes" do
+      it "resets the current tps to zero" do
+        testplan = -> {}
         tps_centered_orchestrator.execute(target_tps_list, &testplan)
 
-        expect(inside_async_context).to be true
-        expect(async_executor).to have_received(:async_context)
+        expect(tps_centered_executor)
+          .to have_received(:reset_tps_counter)
+          .exactly(target_tps_list.size)
+          .times
       end
+    end
 
-      it "waits for each execution of the given block to finish" do
-        skip "not finished yet"
-        allow(stepping_timer).to receive(:each_second).and_yield
-        allow(tps_centered_executor).to receive(:execute).and_yield
-
-        executions_finished = Array.new(target_tps_list.size, false)
-        exec_idx = 0
-        testplan = proc do
-          sleep 0.01
-          executions_finished[exec_idx] = true
-          exec_idx += 1
-        end
-
-        tps_centered_orchestrator.execute(target_tps_list, &testplan)
-
-        expect(executions_finished).to all be true
+    it "executes the given block inside an async context" do
+      inside_async_context = false
+      testplan = proc do
+        inside_async_context = Flut::AsyncExecutor.inside_async_context?
       end
+      tps_centered_orchestrator.execute(target_tps_list, &testplan)
+
+      expect(inside_async_context).to be true
+      expect(async_executor).to have_received(:async_context).once
+    end
+
+    it "starts each execution asynchronously" do
+      testplan = -> {}
+      tps_centered_orchestrator.execute(target_tps_list, &testplan)
+
+      expect(async_executor).to have_received(:execute).at_least(target_tps_list.size).times
     end
   end
 end
