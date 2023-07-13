@@ -4,7 +4,7 @@ task default: :ci
 
 task ci: %i[lint specs]
 
-task cd: %i[ci acceptance_specs]
+task cd: %i[acceptance_specs]
 
 task :lint do
   sh "bundle exec rubocop"
