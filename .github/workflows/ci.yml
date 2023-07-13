@@ -16,7 +16,7 @@ jobs:
           bundler-cache: true
 
       - name: Run bundle install
-        run: bundle config set --local only ci && bundle install
+        run: bundle config set --local only default ci && bundle install
 
       - name: Run rake ci
         run: rake ci
