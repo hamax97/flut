@@ -5,6 +5,8 @@ require_relative "async_executor"
 require_relative "../time/stepping_timer"
 
 module Flut
+  TargetTPS = Struct.new(:tps, :duration_sec)
+
   class TPSCenteredOrchestrator
     def initialize(
       tps_centered_executor: TPSCenteredExecutor.new,

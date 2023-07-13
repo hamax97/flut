@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 group :development do
   gem "overcommit", "~> 0.60.0", require: false
+  gem "pry-byebug", "~> 3.10"
   gem "solargraph", "~> 0.49.0", require: false
 end
 

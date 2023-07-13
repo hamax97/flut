@@ -35,7 +35,9 @@ RSpec.describe Flut::TPSCenteredExecutor do
     end
 
     it "sets the current tps to the desired tps" do
-      tps = rand(2..5)
+      tps = 2
+      executor.execute(tps, &-> {})
+      tps = 5
       executor.execute(tps, &-> {})
       expect(executor.current_tps).to eq tps
     end

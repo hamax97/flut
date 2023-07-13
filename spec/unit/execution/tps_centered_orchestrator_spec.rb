@@ -5,9 +5,6 @@ require_relative "../../../lib/execution/tps_centered_executor"
 require_relative "../../../lib/time/stepping_timer"
 require_relative "../../support/async_executor"
 
-# TODO: move this somewhere else.
-TargetTPS = Struct.new(:tps, :duration_sec)
-
 RSpec.describe Flut::TPSCenteredOrchestrator do
   include_context Flut::RSpec::AsyncExecutor
 
@@ -26,9 +23,9 @@ RSpec.describe Flut::TPSCenteredOrchestrator do
   describe "#execute" do
     let(:target_tps_list) do
       [
-        TargetTPS.new(tps: 1, duration_sec: 1),
-        TargetTPS.new(tps: 2, duration_sec: 3),
-        TargetTPS.new(tps: 4, duration_sec: 2)
+        Flut::TargetTPS.new(tps: 1, duration_sec: 1),
+        Flut::TargetTPS.new(tps: 2, duration_sec: 3),
+        Flut::TargetTPS.new(tps: 4, duration_sec: 2)
       ]
     end
 
