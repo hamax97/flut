@@ -27,7 +27,7 @@ RSpec.describe Flut::AsyncExecutor do
       block = proc do
         num_async_executions.times do
           async_executor.execute do
-            sleep 0.01
+            sleep 0.001
             executions_finished[task_idx] = true
             task_idx += 1
           end
@@ -36,8 +36,9 @@ RSpec.describe Flut::AsyncExecutor do
 
       reactor.async do
         async_executor.async_context(&block)
-        expect(executions_finished).to all be true
       end.wait
+
+      expect(executions_finished).to all be true
     end
 
     context "when inside another async context" do

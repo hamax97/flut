@@ -1,6 +1,9 @@
-name: CI checks
+name: CD checks
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   ci-checks:
@@ -18,5 +21,5 @@ jobs:
       - name: Run bundle install
         run: bundle config set --local only ci && bundle install
 
-      - name: Run rake ci
-        run: rake ci
+      - name: Run rake cd
+        run: rake cd

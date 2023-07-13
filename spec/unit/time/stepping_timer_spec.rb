@@ -7,10 +7,6 @@ RSpec.describe Flut::SteppingTimer do
   let(:timer) { object_spy(Flut::Timer) }
   let(:stepping_timer) { Flut::SteppingTimer.new(timer:) }
 
-  before do
-    stepping_timer.during(1)
-  end
-
   describe "#during" do
     it "sets the duration (in seconds) of this timer" do
       duration_sec = rand(2..5)
@@ -26,6 +22,8 @@ RSpec.describe Flut::SteppingTimer do
 
   describe "#each_second" do
     before do
+      stepping_timer.during(1) # setup duration.
+
       allow(timer).to receive(:during) do |duration_sec, &block|
         duration_sec.times { block.call }
       end

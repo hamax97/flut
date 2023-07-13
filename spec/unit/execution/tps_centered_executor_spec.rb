@@ -13,8 +13,7 @@ RSpec.describe Flut::TPSCenteredExecutor do
   end
 
   it "initializes current_tps to zero" do
-    current_tps = executor.current_tps
-    expect(current_tps).to eq 0
+    expect(executor.current_tps).to eq 0
   end
 
   describe "#execute" do
