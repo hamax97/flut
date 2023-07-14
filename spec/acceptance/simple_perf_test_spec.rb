@@ -20,6 +20,7 @@ RSpec.describe "Simple performance test" do
 
     # TODO: implement an event subscriber that executes callbacks each event.
     # TODO: subscribe to the each_second event and print info.
+    # TODO: only counting TPS is not enough, I need to check second by second.
 
     tps_counter = 0
     orchestrator.execute(target_tps_list) do

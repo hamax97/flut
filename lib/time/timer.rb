@@ -20,7 +20,7 @@ module Flut
     end
 
     def self.measure(&)
-      Benchmark.measure(&).total
+      Benchmark.measure(&).real
     end
   end
 end

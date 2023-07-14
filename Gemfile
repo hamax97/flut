@@ -18,3 +18,4 @@ group :development, :ci do
 end
 
 gem "async", "~> 2.6"
+gem "httpx", "~> 0.24.1"
