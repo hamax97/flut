@@ -40,11 +40,16 @@ RSpec.describe "2000 TPS performance test" do
 
         # TODO: with a delay of 1..2 seconds it's not able to reach 2000 TPS.
         sleep rand(1..2)
+
+        # With a delay of less than one second it goes even beyond 3000 TPS.
+        # sleep 0.9
+
+        # TODO: include some computation (e.g. random numbers, extracting text, ...)
         tps_counter += 1
       end
     end
 
-    # TODO: make it's reaching the desired TPS each second.
+    # TODO: make sure it's reaching the desired TPS each second.
 
     expect(tps_counter).to eq total_transactions
     expect(elapsed_time_sec).to be_between(total_duration, total_duration + 0.1)

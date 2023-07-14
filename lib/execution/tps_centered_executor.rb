@@ -35,6 +35,8 @@ module Flut
     end
 
     def missing_tps(tps)
+      # TODO: implement a way to calculate missing_tps if the delay of each execution
+      #   is greater than 1 second. Perhaps a new object?
       [tps - current_tps, 0].max
     end
   end
