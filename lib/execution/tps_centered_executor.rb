@@ -7,8 +7,8 @@ module Flut
     attr_reader :current_tps
 
     def initialize(async_executor: AsyncExecutor.new)
-      @current_tps = 0
       @async_executor = async_executor
+      @current_tps = 0
     end
 
     def execute(tps, &)
@@ -35,8 +35,7 @@ module Flut
     end
 
     def missing_tps(tps)
-      # TODO: implement a way to calculate missing_tps if the delay of each execution
-      #   is greater than 1 second. Perhaps a new object?
+      # TODO: look at how JMeter or k6 does this.
       [tps - current_tps, 0].max
     end
   end

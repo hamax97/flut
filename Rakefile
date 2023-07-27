@@ -11,9 +11,9 @@ task :lint do
 end
 
 task :specs do
-  sh "bundle exec rspec --exclude-pattern spec/acceptance/*_spec.rb"
+  sh "bundle exec rspec --pattern spec/unit/**/*_spec.rb"
 end
 
 task :acceptance_specs do
-  sh "bundle exec rspec --pattern spec/acceptance/*_spec.rb"
+  sh "bundle exec rspec --pattern spec/acceptance/**/*_spec.rb"
 end

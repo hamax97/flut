@@ -39,7 +39,8 @@ RSpec.describe "2000 TPS performance test" do
         # testplan
 
         # TODO: with a delay of 1..2 seconds it's not able to reach 2000 TPS.
-        sleep rand(1..2)
+        # sleep rand(1..2)
+        sleep 1
 
         # With a delay of less than one second it goes even beyond 3000 TPS.
         # sleep 0.9

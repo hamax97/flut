@@ -41,23 +41,14 @@ RSpec.describe Flut::TPSCenteredExecutor do
       expect(executor.current_tps).to eq tps
     end
 
-    context "when current_tps is zero" do
-      it "starts execution the given # of times per second" do
-        tps = rand(2..5)
-        expect { |testplan| executor.execute(tps, &testplan) }.to yield_control.exactly(tps).times
-      end
-    end
+    it "starts execution the given # of tps" do
+      current_tps = rand(2..5)
+      executor.execute(current_tps, &-> {})
+      tps = rand(2..5)
+      expected_yields = [tps - current_tps, 0].max
 
-    context "when current_tps is > 1" do
-      it "starts executing (target_tps - current_tps) # of times" do
-        current_tps = rand(2..5)
-        executor.execute(current_tps, &-> {})
-        tps = rand(2..5)
-        expected_yields = [tps - current_tps, 0].max
-
-        expect { |testplan| executor.execute(tps, &testplan) }
-          .to yield_control.exactly(expected_yields).times
-      end
+      expect { |testplan| executor.execute(tps, &testplan) }
+        .to yield_control.exactly(expected_yields).times
     end
 
     context "when the target tps is zero" do
