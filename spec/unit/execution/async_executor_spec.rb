@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/async_executor"
-require "async/rspec"
+
+# NOTE: I decided to not use async-rspec because including the Async::RSpec::Reactor context
+# will run ALL examples inside an async context, whereas I just want a few of them within it.
+# Therefore, instead of messing around with rspec tags or including that only in some contexts,
+# I can just use Async directly.
 
 RSpec.describe Flut::AsyncExecutor do
   let(:async_executor) { Flut::AsyncExecutor.new }
-
-  include_context Async::RSpec::Reactor
 
   describe "#async_context" do
     it "yields the given block inside an async context" do
@@ -34,7 +36,7 @@ RSpec.describe Flut::AsyncExecutor do
         end
       end
 
-      reactor.async do
+      Async do
         async_executor.async_context(&block)
       end.wait
 
@@ -48,7 +50,7 @@ RSpec.describe Flut::AsyncExecutor do
           child_context = Async::Task.current
         end
 
-        reactor.async do
+        Async do
           parent_context = Async::Task.current
           async_executor.async_context(&block)
           expect(child_context).to eq parent_context
@@ -64,11 +66,15 @@ RSpec.describe Flut::AsyncExecutor do
         new_context = Async::Task.current
       end
 
-      reactor.async do
+      async_executor.async_context do
         parent_context = Async::Task.current
         async_executor.execute(&block)
         expect(new_context).to_not eq parent_context
-      end.wait
+      end
+    end
+
+    it "raises error if not inside async context" do
+      expect { async_executor.execute(&-> {}) }.to raise_error(/not inside async context/i)
     end
   end
 end

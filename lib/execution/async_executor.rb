@@ -24,7 +24,11 @@ module Flut
       barrier.wait
     end
 
+    # Executes the given block inside an async task. It's intended to be used
+    # inside async_context.
     def execute(&)
+      raise "Not inside async context" unless AsyncExecutor.inside_async_context?
+
       barrier.async do
         yield
       end
