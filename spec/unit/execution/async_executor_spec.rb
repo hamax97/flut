@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/async_executor"
+require "async"
 
 # NOTE: I decided to not use async-rspec because including the Async::RSpec::Reactor context
 # will run ALL examples inside an async context, whereas I just want a few of them within it.
