@@ -27,13 +27,13 @@ module Flut
       end
     end
 
+    private
+
+    attr_reader :duration_sec, :stepping_timer, :async_executor
+
     def notify
       changed
       notify_observers
     end
-
-    private
-
-    attr_reader :duration_sec, :stepping_timer, :async_executor
   end
 end

@@ -1,21 +1,32 @@
 # frozen_string_literal: true
 
 require_relative "async_executor"
+require_relative "../time/each_second_event"
 
 module Flut
   class TPSCenteredExecutor
     attr_reader :current_tps
 
-    def initialize(async_executor: AsyncExecutor.new)
-      @async_executor = async_executor
+    # rubocop:disable Metrics/MethodLength
+    def initialize(tps:, duration_sec:, async_executor: AsyncExecutor.new,
+                   each_second_event: EachSecondEvent.new(duration_sec:), &testplan)
+      @tps = tps
       @current_tps = 0
+      @testplan = testplan
+      @async_executor = async_executor
+      @each_second_event = each_second_event
+      @each_second_event.register(self, :execute)
+      @each_second_event.register(self, :reset_tps_counter)
+    end
+    # rubocop:enable Metrics/MethodLength
+
+    def start
+      each_second_event.fire
     end
 
-    def execute(tps, &)
+    def execute
       async_executor.async_context do
-        missing_tps(tps).times do
-          async_execute(&)
-        end
+        missing_tps.times { async_execute(&testplan) }
       end
     end
 
@@ -25,7 +36,7 @@ module Flut
 
     private
 
-    attr_reader :async_executor
+    attr_reader :async_executor, :each_second_event, :tps, :testplan
 
     def async_execute(&)
       async_executor.execute do
@@ -34,8 +45,7 @@ module Flut
       end
     end
 
-    def missing_tps(tps)
-      # TODO: look at how JMeter or k6 does this.
+    def missing_tps
       [tps - current_tps, 0].max
     end
   end

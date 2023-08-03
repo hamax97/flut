@@ -73,3 +73,6 @@ RSpec/NotToNot:
 
 RSpec/VerifiedDoubleReference:
   EnforcedStyle: constant
+
+Naming/BlockForwarding:
+  Enabled: false

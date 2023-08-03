@@ -1,61 +1,92 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/execution/tps_centered_executor"
+require_relative "../../../lib/time/each_second_event"
 require_relative "../../support/async_executor"
 
 RSpec.describe Flut::TPSCenteredExecutor do
   include_context Flut::RSpec::AsyncExecutor
 
-  let(:executor) { Flut::TPSCenteredExecutor.new async_executor: }
-
   it "counts the current number of tps" do
+    testplan = -> {}
+    executor = Flut::TPSCenteredExecutor.new(tps: 1, duration_sec: 1, &testplan)
     expect(executor).to respond_to :current_tps
   end
 
   it "initializes current_tps to zero" do
+    testplan = -> {}
+    executor = Flut::TPSCenteredExecutor.new(tps: 1, duration_sec: 1, &testplan)
     expect(executor.current_tps).to eq 0
   end
 
+  describe "#start" do
+    it "triggers the execution" do
+      testplan = -> {}
+      each_second_event = instance_spy(Flut::EachSecondEvent)
+      executor = Flut::TPSCenteredExecutor.new(
+        tps: 1, duration_sec: 1, each_second_event:, &testplan
+      )
+
+      executor.start
+
+      expect(each_second_event).to have_received(:register).with(executor, :execute)
+      expect(each_second_event).to have_received(:register).with(executor, :reset_tps_counter)
+      expect(each_second_event).to have_received(:fire)
+    end
+  end
+
   describe "#execute" do
-    it "starts each execution inside an asynchronous context" do
-      tps = 2
-      testplan = proc do
-        expect(Flut::AsyncExecutor.inside_async_context?).to be true
+    it "sets the current tps to the desired tps" do
+      testplan = -> {}
+      tps = rand(2..5)
+      executor = Flut::TPSCenteredExecutor.new(tps:, duration_sec: 1, &testplan)
+
+      executor.execute
+
+      expect(executor.current_tps).to eq tps
+    end
+
+    it "starts execution the given # of tps" do
+      executions_count = 0
+      testplan = -> { executions_count += 1 }
+      tps = rand(2..5)
+      executor = Flut::TPSCenteredExecutor.new(tps:, duration_sec: 1, &testplan)
+      current_tps = executor.current_tps
+
+      executor.execute
+      executor.execute # tps already reached, no executions here.
+
+      expected_yields = [tps - current_tps, 0].max
+      expect(executions_count).to eq expected_yields
+    end
+
+    context "when the target tps is zero" do
+      it "doesn't execute the block" do
+        expect do |testplan|
+          tps = 0
+          executor = Flut::TPSCenteredExecutor.new(tps:, duration_sec: 1, &testplan)
+          executor.execute
+        end.to_not yield_control
       end
-      executor.execute(tps, &testplan)
+    end
+
+    it "starts each execution inside an asynchronous context" do
+      testplan = -> {}
+      executor = Flut::TPSCenteredExecutor.new(tps: 2, duration_sec: 1, async_executor:, &testplan)
+
+      executor.execute
 
       expect(async_executor).to have_received(:async_context).once
     end
 
     it "starts each execution asynchronously" do
-      tps = 2
-      executor.execute(tps, &-> {})
-      expect(async_executor).to have_received(:execute).twice
-    end
-
-    it "sets the current tps to the desired tps" do
-      tps = 2
-      executor.execute(tps, &-> {})
-      tps = 5
-      executor.execute(tps, &-> {})
-      expect(executor.current_tps).to eq tps
-    end
-
-    it "starts execution the given # of tps" do
-      current_tps = rand(2..5)
-      executor.execute(current_tps, &-> {})
+      testplan = -> {}
       tps = rand(2..5)
-      expected_yields = [tps - current_tps, 0].max
+      executor = Flut::TPSCenteredExecutor.new(tps:, duration_sec: 1, async_executor:, &testplan)
 
-      expect { |testplan| executor.execute(tps, &testplan) }
-        .to yield_control.exactly(expected_yields).times
-    end
+      executor.execute
 
-    context "when the target tps is zero" do
-      it "doesn't execute the block" do
-        tps = 0
-        expect { |testplan| executor.execute(tps, &testplan) }.to_not yield_control
-      end
+      expect(async_executor).to have_received(:execute).exactly(tps).times
     end
 
     # TODO: add this feature in a future release.
@@ -67,9 +98,11 @@ RSpec.describe Flut::TPSCenteredExecutor do
 
   describe "#reset_tps_counter" do
     it "sets current_tps to zero" do
-      tps = rand(2..5)
       testplan = -> {}
-      executor.execute(tps, &testplan)
+      tps = rand(2..5)
+      executor = Flut::TPSCenteredExecutor.new(tps:, duration_sec: 1, &testplan)
+      executor.execute
+      expect(executor.current_tps).to eq tps
 
       executor.reset_tps_counter
       expect(executor.current_tps).to eq 0
